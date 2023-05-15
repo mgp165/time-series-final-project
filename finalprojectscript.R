@@ -17,6 +17,7 @@ axis(2, at=seq(0,3,by=0.5),labels=seq(0,3,by=0.5))
 
 ggseasonplot(z, main='cemento ')
 
+
 #la periodicidad es efectivamente 4
 
 #box cox transformation
@@ -101,7 +102,7 @@ ggseasonplot(ts(Wt.2,frequency=4))
 #con ggseasonal ver estacionariedad
 
 
-acf.2=Acf(Wt.2, 100)
+acf.2=Acf(Wt.2, 58)
 plot(acf.2$acf[-1],type='h')
 points(seq(4,100,by=4), acf.2$acf[seq(5,101,by=4)],type="h",col="blue",lwd=1.5)
 #mostraremos con abs para ver mejor las caracteristicas
@@ -131,18 +132,29 @@ points(seq(4,100,by=4), abs(pacf.2$acf[seq(4,101,by=4)]),type="h",col="blue",lwd
 #seleccion modelos en la hoja de peñas, foto por whatsapp
 
 
-
+#los mas creibles a priori
 mod1 = Arima(data,order=c(1,1,1),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
 mod2 = Arima(data,order=c(2,1,1),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
 mod3 = Arima(data,order=c(1,1,0),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
 mod4 = Arima(data,order=c(2,1,0),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
+#añadimos mas 
+mod5 = Arima(data,order=c(2,1,0),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)
+mod6 = Arima(data,order=c(2,1,1),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)
+mod7 = Arima(data,order=c(2,1,0),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
+mod8 = Arima(data,order=c(2,1,1),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
+
 
 
 AIC.BIC=rbind(c(mod1$"aic",mod1$"aicc",mod1$"bic"),
               c(mod2$"aic",mod2$"aicc",mod2$"bic"),
               c(mod3$"aic",mod3$"aicc",mod3$"bic"),
-              c(mod4$"aic",mod4$"aicc",mod4$"bic"))
-dimnames(AIC.BIC)=list(c("Model 1","Model 2", "Model 3", 'Model 4'),c("AIC","AICc","BIC"))
+              c(mod4$"aic",mod4$"aicc",mod4$"bic"),
+              c(mod5$"aic",mod5$"aicc",mod5$"bic"),
+              c(mod6$"aic",mod6$"aicc",mod6$"bic"),
+              c(mod7$"aic",mod7$"aicc",mod7$"bic"),
+              c(mod8$"aic",mod8$"aicc",mod8$"bic"))
+
+dimnames(AIC.BIC)=list(c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","Model 6", "Model 7", 'Model 8'),c("AIC","AICc","BIC"))
 AIC.BIC
 
 
@@ -156,6 +168,14 @@ MSE.vec3=numeric(n.data-n.min) # Mean Squared Error model 3
 MAE.vec3=numeric(n.data-n.min) # Mean Absolute Error model 3
 MSE.vec4=numeric(n.data-n.min) # Mean Squared Error model 4
 MAE.vec4=numeric(n.data-n.min) # Mean Absolute Error model 4
+MSE.vec5=numeric(n.data-n.min) # Mean Squared Error model 5
+MAE.vec5=numeric(n.data-n.min) # Mean Absolute Error model 5
+MSE.vec6=numeric(n.data-n.min) # Mean Squared Error model 6
+MAE.vec6=numeric(n.data-n.min) # Mean Absolute Error model 6
+MSE.vec7=numeric(n.data-n.min) # Mean Squared Error model 7
+MAE.vec7=numeric(n.data-n.min) # Mean Absolute Error model 7
+MSE.vec8=numeric(n.data-n.min) # Mean Squared Error model 8
+MAE.vec8=numeric(n.data-n.min) # Mean Absolute Error model 8
 
 for (k in 1:(n.data-n.min))
 {
@@ -167,6 +187,14 @@ for (k in 1:(n.data-n.min))
   forcast.mod3 <- forecast(fit.mod3, h=1)[['mean']]
   fit.mod4=Arima(data[1:(n.min+k-1)],order=c(2,1,0),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
   forcast.mod4 <- forecast(fit.mod4, h=1)[['mean']]
+  fit.mod5=Arima(data[1:(n.min+k-1)],order=c(2,1,0),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)   
+  forcast.mod5 <- forecast(fit.mod5, h=1)[['mean']]
+  fit.mod6=Arima(data[1:(n.min+k-1)],order=c(2,1,1),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)
+  forcast.mod6 <- forecast(fit.mod6, h=1)[['mean']]
+  fit.mod7=Arima(data[1:(n.min+k-1)],order=c(2,1,0),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
+  forcast.mod7 <- forecast(fit.mod7, h=1)[['mean']]
+  fit.mod8=Arima(data[1:(n.min+k-1)],order=c(2,1,1),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
+  forcast.mod8 <- forecast(fit.mod8, h=1)[['mean']]
   
   MSE.vec1[k]=(data[(n.min+k)]-forcast.mod1)^2
   MAE.vec1[k]=abs(data[(n.min+k)]-forcast.mod1)
@@ -176,14 +204,55 @@ for (k in 1:(n.data-n.min))
   MAE.vec3[k]=abs(data[(n.min+k)]-forcast.mod3)
   MSE.vec4[k]=(data[(n.min+k)]-forcast.mod4)^2
   MAE.vec4[k]=abs(data[(n.min+k)]-forcast.mod4)
+  MSE.vec5[k]=(data[(n.min+k)]-forcast.mod5)^2
+  MAE.vec5[k]=abs(data[(n.min+k)]-forcast.mod5)
+  MSE.vec6[k]=(data[(n.min+k)]-forcast.mod6)^2
+  MAE.vec6[k]=abs(data[(n.min+k)]-forcast.mod6)
+  MSE.vec7[k]=(data[(n.min+k)]-forcast.mod7)^2
+  MAE.vec7[k]=abs(data[(n.min+k)]-forcast.mod7)
+  MSE.vec8[k]=(data[(n.min+k)]-forcast.mod8)^2
+  MAE.vec8[k]=abs(data[(n.min+k)]-forcast.mod8)
 }
 
 # Summary Results 
 Results.mat=rbind(
-  apply(cbind(MSE.vec1,MSE.vec2,MSE.vec3,MSE.vec4)[-280,],2,mean),
-  apply(cbind(MAE.vec1,MAE.vec2,MAE.vec3,MAE.vec4)[-280,],2,mean)
+  apply(cbind(MSE.vec1,MSE.vec2,MSE.vec3,MSE.vec4,MSE.vec5,MSE.vec6,MSE.vec7,MSE.vec8)[-132,],2,mean),
+  apply(cbind(MAE.vec1,MAE.vec2,MAE.vec3,MAE.vec4,MAE.vec5,MAE.vec6,MAE.vec7,MAE.vec8)[-132,],2,mean)
 )
-dimnames(Results.mat)=list(c("MSE","MAE"),c("Model 1","Model 2", "Model 3",'Model 4'))
+dimnames(Results.mat)=list(c("MSE","MAE"),c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","Model 6", "Model 7", 'Model 8'))
 
 Results.mat
 
+#modelos del 1 al 6 buenos 
+
+#plot acf y pacf teoricas 
+library(polynom)
+Acf(X.tilde)
+
+coef1 = fit.mod1$coef
+ar1reg = polynomial(c(1, coef1[1]))
+ar1seas = polynomial(c(1, 0,0,0,coef1[3],0,0,0,coef1[4], 0,0,0,coef1[5], 0,0,0,coef1[6]))
+ar.vec1 = ar1reg*ar1seas
+acfmod1 = ARMAacf(ar=-coefficients(ar.vec1)[-1],ma=c(coef1[2]),40)
+pacfmod1 = ARMAacf(ar=c(),ma=c(coef1[2]),pacf=TRUE)
+
+coef2 = fit.mod2$coef
+acfmod2 = ARMAacf(ar=c(),ma=c())
+pacfmod2 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+
+coef3 = fit.mod3$coef
+acfmod3 = ARMAacf(ar=c(),ma=c())
+pacfmod3 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+
+coef4 = fit.mod4$coef
+acfmod4 = ARMAacf(ar=c(),ma=c())
+pacfmod4 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+
+coef5 = fit.mod5$coef
+acfmod5 = ARMAacf(ar=c(),ma=c())
+pacfmod5 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+
+coef6 = fit.mod6$coef
+acfmod6 = ARMAacf(ar=c(),ma=c())
+pacfmod6 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+#hacer simulacion y acf de eso 
