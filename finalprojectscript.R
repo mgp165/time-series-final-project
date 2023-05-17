@@ -223,36 +223,134 @@ dimnames(Results.mat)=list(c("MSE","MAE"),c("Model 1","Model 2", "Model 3", 'Mod
 
 Results.mat
 
+
 #modelos del 1 al 6 buenos 
+#nos quedamos con el 4 por AIC, BIC, AICc
+#nos quedamos con 5 MSEy 6 por MAE
+
+
+#esto nos lo saltamos de momento, vamos a diagnosis de residuos de estos 3
+#si hay uno claramente mejor nos lo quedamos, si no, vamos a lo de lab2 de hacer realizaciones y comparar, si de nuevo
+#todos nos diesen lo mismo, predecimos con los 3 y ya, puede ocurrir que tengamos 3 buenos modelos, incluso podemos 
+#comentar que para predicciones reales podriamos hacer una democracia de modelos
 
 #plot acf y pacf teoricas 
 library(polynom)
-Acf(X.tilde)
+acfreal = Acf(Wt.2,40)$acf
+pacfreal = Pacf(Wt.2, 40)$acf
+
 
 coef1 = fit.mod1$coef
-ar1reg = polynomial(c(1, coef1[1]))
-ar1seas = polynomial(c(1, 0,0,0,coef1[3],0,0,0,coef1[4], 0,0,0,coef1[5], 0,0,0,coef1[6]))
+ar1reg = polynomial(c(1, -coef1[1]))
+ar1seas = polynomial(c(1, 0,0,0,-coef1[3],0,0,0,-coef1[4], 0,0,0,-coef1[5], 0,0,0,-coef1[6]))
 ar.vec1 = ar1reg*ar1seas
 acfmod1 = ARMAacf(ar=-coefficients(ar.vec1)[-1],ma=c(coef1[2]),40)
-pacfmod1 = ARMAacf(ar=c(),ma=c(coef1[2]),pacf=TRUE)
+plot(acfmod1[-1],type='l',xlim=c(0,40),ylim=c(-0.5,0.5))
+abline(h=0)
+par(new=TRUE)
+plot(acfreal[-1],type='l',col='blue',xlim=c(0,40),ylim=c(-0.5,0.5))
+pacfmod1 = ARMAacf(ar=-coefficients(ar.vec1)[-1],ma=c(coef1[2]),pacf=TRUE, 40)
+plot(pacfmod1,type='h',xlim=c(0,40),ylim=c(-1,1))
+abline(h=0)
+par(new=TRUE)
+plot(pacfreal,type='h',col='blue',xlim=c(0,40),ylim=c(-1,1))
+
+plot(acfreal[-1]-acfmod1[-1],type='l')
+plot(pacfreal-pacfmod1,type='l')
+
 
 coef2 = fit.mod2$coef
-acfmod2 = ARMAacf(ar=c(),ma=c())
-pacfmod2 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+ar2reg = polynomial(c(1,-coef2[1],-coef2[2]))
+ar2seas =  polynomial(c(1, 0,0,0,-coef2[4],0,0,0,-coef2[5], 0,0,0,-coef2[6], 0,0,0,-coef2[7]))
+ar.vec2 = ar2reg*ar2seas
+acfmod2 = ARMAacf(ar=-coefficients(ar.vec2)[-1],ma=c(coef2[3]),40)
+plot(acfmod2[-1],type='l',xlim=c(0,40),ylim=c(-0.5,0.5))
+abline(h=0)
+par(new=TRUE)
+plot(acfreal[-1],type='l',col='blue',xlim=c(0,40),ylim=c(-0.5,0.5))
+pacfmod2 = ARMAacf(ar=-coefficients(ar.vec2)[-1],ma=c(coef2[3]),pacf=TRUE, 40)
+plot(pacfmod2[-1],type='l',xlim=c(0,40),ylim=c(-1,1))
+abline(h=0)
+par(new=TRUE)
+plot(pacfreal,type='l',col='blue',xlim=c(0,40),ylim=c(-1,1))
+
+plot(acfreal-acfmod2[-1],type='l')
+plot(pacfreal[-1]-pacfmod2[-1],type='l')
+
 
 coef3 = fit.mod3$coef
-acfmod3 = ARMAacf(ar=c(),ma=c())
-pacfmod3 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+ar3reg = polynomial(c(1,-coef3[1]))
+ar3seas =  polynomial(c(1, 0,0,0,-coef3[2],0,0,0,-coef3[3], 0,0,0,-coef3[4], 0,0,0,-coef3[5]))
+ar.vec3 = ar3reg*ar3seas
+acfmod3 = ARMAacf(ar=-coefficients(ar.vec3)[-1],ma=0,40)
+pacfmod3 = ARMAacf(ar=-coefficients(ar.vec3)[-1],ma=0,pacf=TRUE,40)
+
+plot(acfreal[-1]-acfmod3[-1],type='l')
+plot(pacfreal[-1]-pacfmod3[-1],type='l')
+
 
 coef4 = fit.mod4$coef
-acfmod4 = ARMAacf(ar=c(),ma=c())
-pacfmod4 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+ar4reg = polynomial(c(1,-coef4[1],-coef4[2]))
+ar4seas =  polynomial(c(1, 0,0,0,-coef4[3],0,0,0,-coef4[4], 0,0,0,-coef4[5], 0,0,0,-coef4[6]))
+ar.vec4 = ar4reg*ar4seas
+acfmod4 = ARMAacf(ar=-coefficients(ar.vec4)[-1],ma=0,40)
+pacfmod4 = ARMAacf(ar=-coefficients(ar.vec4)[-1],ma=0,pacf=TRUE,40)
+
+plot(acfreal[-1]-acfmod4[-1],type='l')
+plot(pacfreal[-1]-pacfmod4[-1],type='l')
+
 
 coef5 = fit.mod5$coef
-acfmod5 = ARMAacf(ar=c(),ma=c())
-pacfmod5 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
+ar5reg = polynomial(c(1,-coef5[1],-coef5[2]))
+ar5seas =  polynomial(c(1, 0,0,0,-coef5[3],0,0,0,-coef5[4]))
+ar.vec5 = ar5reg*ar5seas
+acfmod5 = ARMAacf(ar=-coefficients(ar.vec5)[-1],ma=c(0,0,0,coef5[5],0,0,0,coef5[6]),40)
+pacfmod5 = ARMAacf(ar=-coefficients(ar.vec5)[-1],ma=c(0,0,0,coef5[5],0,0,0,coef5[6]),pacf=TRUE,40)
+
+plot(acfreal[-1]-acfmod5[-1],type='l')
+plot(pacfreal[-1]-pacfmod5[-1],type='l')
+
 
 coef6 = fit.mod6$coef
-acfmod6 = ARMAacf(ar=c(),ma=c())
-pacfmod6 = ARMAacf(ar=c(),ma=c(),pacf=TRUE)
-#hacer simulacion y acf de eso 
+ar6reg = polynomial(c(1,-coef6[1],-coef6[2]))
+ar6seas =  polynomial(c(1, 0,0,0,-coef6[4],0,0,0,-coef6[5]))
+ar.vec6 = ar6reg*ar6seas
+ma6reg = polynomial(c(1,coef6[3]))
+ma6seas = polynomial(c(1, 0,0,0,coef6[6],0,0,0,coef6[7]))
+ma.vec6 = ma6reg*ma6seas
+acfmod6 = ARMAacf(ar=-coefficients(ar.vec6)[-1],ma=coefficients(ma.vec6)[-1],40)
+pacfmod6 = ARMAacf(ar=-coefficients(ar.vec6)[-1],ma=coefficients(ma.vec6)[-1],pacf=TRUE,40)
+
+plot(acfreal[-1]-acfmod6[-1],type='l')
+plot(pacfreal-pacfmod6[-1],type='l')
+
+
+
+diferencias_acfs_concatenadas = c(acfreal[-1]-acfmod1[-1],acfreal[-1]-acfmod2[-1],acfreal[-1]-acfmod3[-1],acfreal[-1]-acfmod4[-1],acfreal[-1]-acfmod5[-1],acfreal[-1]-acfmod6[-1])
+ggseasonplot(ts(diferencias_acfs_concatenadas,frequency=40))
+diferencias_pacfs_concatenadas = c(pacfreal-pacfmod1,pacfreal-pacfmod2,pacfreal-pacfmod3,pacfreal-pacfmod4,pacfreal-pacfmod5,pacfreal-pacfmod6)
+ggseasonplot(ts(diferencias_pacfs_concatenadas,frequency=40))
+
+#####
+
+#diagnosis of residuals
+
+require(astsa)
+source('Diagnostic.R')
+require(portes)
+
+#MODELO 4
+
+S.ACF(mod4$residuals)
+NonParametric.Tests(mod4$residuals)
+Check.normality(mod4$residuals)
+
+#MODELO 5
+S.ACF(mod5$residuals)
+
+#MODELO 6
+S.ACF(mod6$residuals)
+
+
+
+
