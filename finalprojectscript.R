@@ -215,6 +215,7 @@ for (k in 1:(n.data-n.min))
 }
 
 # Summary Results 
+
 Results.mat=rbind(
   apply(cbind(MSE.vec1,MSE.vec2,MSE.vec3,MSE.vec4,MSE.vec5,MSE.vec6,MSE.vec7,MSE.vec8)[-132,],2,mean),
   apply(cbind(MAE.vec1,MAE.vec2,MAE.vec3,MAE.vec4,MAE.vec5,MAE.vec6,MAE.vec7,MAE.vec8)[-132,],2,mean)
@@ -338,19 +339,52 @@ ggseasonplot(ts(diferencias_pacfs_concatenadas,frequency=40))
 require(astsa)
 source('Diagnostic.R')
 require(portes)
-
+require(nortest)
 #MODELO 4
 
 S.ACF(mod4$residuals)
 NonParametric.Tests(mod4$residuals)
 Check.normality(mod4$residuals)
+My.Ljung.Box(mod4$residuals, 7)
+
 
 #MODELO 5
+
 S.ACF(mod5$residuals)
+NonParametric.Tests(mod5$residuals)
+Check.normality(mod5$residuals)
+My.Ljung.Box(mod5$residuals,7)
 
 #MODELO 6
+
 S.ACF(mod6$residuals)
+NonParametric.Tests(mod6$residuals)
+Check.normality(mod6$residuals)
+My.Ljung.Box(mod6$residuals,8)
+
+#con el S.ACF obtenemos lo mismo para los 3 
+#con el check normality lo mismo
+#con el nonparametric tenemos un poco de evidencia para descartar mod6
+#con el ljung box nos quedamos con el 4 (k=8 por lo del paper linkeado en el lab6)
 
 
+##fitting and predictions
 
 
+plot(seq(1,232), data,ylab="registrations",xlab="",type="l",main="titutlo",lwd=2)
+points(seq(1,232),forecast(mod4)$fitted,col="red",type="l",lwd=2)
+
+n.data=length(data)
+fit.mod4=Arima(data[1:224],order=c(2,1,0),seasonal=list(order=c(4,1,0),period=4 ),lambda=-0.13)   
+forcast.mod4 <- forecast(fit.mod4, h=8) #predicciones
+
+plot(seq(180,232), data[180:232],ylab="Registrations",xlab="",type="l",main="titulo ",ylim=c(1.4,3.5))
+points(seq(225,232),forcast.mod4$mean,type="l",col="red") # predictions
+points(seq(225,232),forcast.mod4$lower[,2],type="l",col="blue") # lower CI
+points(seq(225,232),forcast.mod4$upper[,2],type="l",col="blue") # up CI 
+#en vez de h=8 meterle 12 
+
+Predic.mod4=forecast(mod4,32)
+Predic.mod4
+
+plot(Predic.mod4,200)
