@@ -8,14 +8,14 @@ z = ts(data, start=c(1958,1), frequency=4)
 
 #plot the data
 
-plot(data, type='l', axes=FALSE, xlab="", ylab='cement(in millions of tons)', main='Total quarterly production of cement in Australia, first quarter 1958 - fourth quarter 2015')
+plot(data, type='l', axes=FALSE, xlab="", ylab='cement (in millions of tons)', main='Total quarterly production of cement in Australia (1st quarter 1958 - 4th quarter 2015), n=232')
 box()
-axis(1, at=seq(0,232,by=24), labels=seq(1958,2015,by=6))
+axis(1, at=c(seq(0,232,by=24),232), labels=c(seq(1958,2015,by=6),2015))
 axis(2, at=seq(0,3,by=0.5),labels=seq(0,3,by=0.5))  
 
 #comentar que vemos trend y seasonal y varianza distinta
 
-ggseasonplot(z, main='cemento ')
+ggseasonplot(z, main='Seasonal plot: Total production of cement in Australia')
 
 
 #la periodicidad es efectivamente 4
@@ -76,13 +76,13 @@ X.tilde = BoxCox.out(data, n.tilde)
 
 #now the variance is constant as we can see
 
-Acf(X.tilde,main="ACF of the logarithm of the registration series",xlab="Lag",ylab="ACF")
+Acf(X.tilde,main="ACF of the transformed series",xlab="Lag",ylab="ACF")
 
 #decreases linearly slowly 
 # we apply differencing operator
 
 Wt.1 = diff(X.tilde, lag=1, differences=1)
-ts.plot(Wt.1)
+ts.plot(Wt.1, main='First difference of the transformed series', ylab='', xlab='')
 #the mean of Wt.1 is constant and zero so the process is stationary
 
 #as Wt.1 is stationary, X.tilde is integrated of order 1
@@ -91,20 +91,23 @@ ts.plot(Wt.1)
 #plot ggseasonal para comprobar que es estacionaria
 
 
-Acf(Wt.1, main="ACF of the first difference of the logarithm of the registration series",xlab="Lag",ylab="ACF")
+Acf(Wt.1, main="ACF of the first difference of the transformed series",xlab="Lag",ylab="ACF")
 
 #as we see acf non zero on seasonal lags, we apply seasonal differencing operator (s=4)
 
 Wt.2 = diff(Wt.1, lag=4, differences = 1)
 
-plot(Wt.2,type='l')
+plot(Wt.2,type='l', main='Transformed series after one regular difference and one seasonal difference', ylab='', xlab='')
 ggseasonplot(ts(Wt.2,frequency=4))
 #con ggseasonal ver estacionariedad
+mean(Wt.2) #efectivametne la media es 0
 
-
-acf.2=Acf(Wt.2, 58)
-plot(acf.2$acf[-1],type='h')
-points(seq(4,100,by=4), acf.2$acf[seq(5,101,by=4)],type="h",col="blue",lwd=1.5)
+acf.2=Acf(Wt.2, 58, main='ACF of the transformed time series after one regular difference and one seasonal difference')
+plot(acf.2$acf[-1],type='h', ylab='ACF', xlab='Lags', main='ACF of the transformed time series after one regular difference and one seasonal difference')
+points(seq(4,100,by=4), acf.2$acf[seq(5,101,by=4)],type="h",col="red",lwd=1.5)
+abline(h=0)
+abline(h=1.96/sqrt(232),lty=2, col='blue')
+abline(h=-1.96/sqrt(232),lty=2, col='blue')
 #mostraremos con abs para ver mejor las caracteristicas
 plot(abs(acf.2$acf[-1]),type='h')
 points(seq(4,100,by=4), abs(acf.2$acf[seq(5,101,by=4)]),type="h",col="blue",lwd=1.5)
@@ -113,7 +116,7 @@ points(seq(4,100,by=4), abs(acf.2$acf[seq(5,101,by=4)]),type="h",col="blue",lwd=
 abline(h=0)
 plot(seq(4,100,by=4),acf.2$acf[seq(5,101,by=4)],type="h",col="blue",lwd=1.5)
 
-#vemos sinusoide en seasonal, en regular vemos decreasing geomertically
+#vemos sinusoide en seasonal, en regular vemos decreasing geometrically
 #por tanto, la seasonal puede ser arma o ar, la regular puede ser arma o ar
 
 #pacf igual
@@ -121,8 +124,11 @@ plot(seq(4,100,by=4),acf.2$acf[seq(5,101,by=4)],type="h",col="blue",lwd=1.5)
 pacf.2=Pacf(Wt.2, 100)
 
 
-plot(pacf.2$acf,type='h')
-points(seq(4,100,by=4), pacf.2$acf[seq(4,101,by=4)],type="h",col="blue",lwd=1.5)
+plot(pacf.2$acf[1:58],type='h', ylab='PACF', xlab='Lags', main='PACF of the transformed time series after one regular difference and one seasonal difference')
+points(seq(4,58,by=4), pacf.2$acf[seq(4,59,by=4)],type="h",col="red",lwd=1.5)
+abline(h=0)
+abline(h=1.96/sqrt(232),lty=2, col='blue')
+abline(h=-1.96/sqrt(232),lty=2, col='blue')
 
 plot(abs(pacf.2$acf),type='h')
 points(seq(4,100,by=4), abs(pacf.2$acf[seq(4,101,by=4)]),type="h",col="blue",lwd=1.5)
@@ -227,7 +233,7 @@ Results.mat
 
 #modelos del 1 al 6 buenos 
 #nos quedamos con el 4 por AIC, BIC, AICc
-#nos quedamos con 5 MSEy 6 por MAE
+#nos quedamos con 6 por  MSE y MAE
 
 
 #esto nos lo saltamos de momento, vamos a diagnosis de residuos de estos 3
