@@ -148,7 +148,9 @@ mod5 = Arima(data,order=c(2,1,0),seasonal=list(order=c(2,1,2),period=4),lambda=-
 mod6 = Arima(data,order=c(2,1,1),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)
 mod7 = Arima(data,order=c(2,1,0),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
 mod8 = Arima(data,order=c(2,1,1),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
-
+mod9 = Arima(data,order=c(0,1,1),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)
+mod10 = Arima(data,order=c(0,1,1),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
+mod11 = Arima(data,order=c(0,1,1),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
 
 
 AIC.BIC=rbind(c(mod1$"aic",mod1$"aicc",mod1$"bic"),
@@ -158,9 +160,12 @@ AIC.BIC=rbind(c(mod1$"aic",mod1$"aicc",mod1$"bic"),
               c(mod5$"aic",mod5$"aicc",mod5$"bic"),
               c(mod6$"aic",mod6$"aicc",mod6$"bic"),
               c(mod7$"aic",mod7$"aicc",mod7$"bic"),
-              c(mod8$"aic",mod8$"aicc",mod8$"bic"))
+              c(mod8$"aic",mod8$"aicc",mod8$"bic"),
+              c(mod9$"aic",mod9$"aicc",mod9$"bic"),
+              c(mod10$"aic",mod10$"aicc",mod10$"bic"),
+              c(mod11$"aic",mod11$"aicc",mod11$"bic"))
 
-dimnames(AIC.BIC)=list(c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","Model 6", "Model 7", 'Model 8'),c("AIC","AICc","BIC"))
+dimnames(AIC.BIC)=list(c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","Model 6", "Model 7", 'Model 8', 'Model 9', 'Model 10', 'Model 11'),c("AIC","AICc","BIC"))
 AIC.BIC
 
 
@@ -182,6 +187,12 @@ MSE.vec7=numeric(n.data-n.min) # Mean Squared Error model 7
 MAE.vec7=numeric(n.data-n.min) # Mean Absolute Error model 7
 MSE.vec8=numeric(n.data-n.min) # Mean Squared Error model 8
 MAE.vec8=numeric(n.data-n.min) # Mean Absolute Error model 8
+MSE.vec9=numeric(n.data-n.min) 
+MAE.vec9=numeric(n.data-n.min) 
+MSE.vec10=numeric(n.data-n.min) 
+MAE.vec10=numeric(n.data-n.min) 
+MSE.vec11=numeric(n.data-n.min) 
+MAE.vec11=numeric(n.data-n.min) 
 
 for (k in 1:(n.data-n.min))
 {
@@ -201,6 +212,12 @@ for (k in 1:(n.data-n.min))
   forcast.mod7 <- forecast(fit.mod7, h=1)[['mean']]
   fit.mod8=Arima(data[1:(n.min+k-1)],order=c(2,1,1),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
   forcast.mod8 <- forecast(fit.mod8, h=1)[['mean']]
+  fit.mod9=Arima(data[1:(n.min+k-1)],order=c(0,1,1),seasonal=list(order=c(2,1,2),period=4),lambda=-0.13)
+  forcast.mod9 <- forecast(fit.mod9, h=1)[['mean']]
+  fit.mod10=Arima(data[1:(n.min+k-1)],order=c(0,1,1),seasonal=list(order=c(2,1,0),period=4),lambda=-0.13)
+  forcast.mod10 <- forecast(fit.mod10, h=1)[['mean']]
+  fit.mod11=Arima(data[1:(n.min+k-1)],order=c(0,1,1),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
+  forcast.mod11 <- forecast(fit.mod11, h=1)[['mean']]
   
   MSE.vec1[k]=(data[(n.min+k)]-forcast.mod1)^2
   MAE.vec1[k]=abs(data[(n.min+k)]-forcast.mod1)
@@ -218,22 +235,28 @@ for (k in 1:(n.data-n.min))
   MAE.vec7[k]=abs(data[(n.min+k)]-forcast.mod7)
   MSE.vec8[k]=(data[(n.min+k)]-forcast.mod8)^2
   MAE.vec8[k]=abs(data[(n.min+k)]-forcast.mod8)
+  MSE.vec9[k]=(data[(n.min+k)]-forcast.mod9)^2
+  MAE.vec9[k]=abs(data[(n.min+k)]-forcast.mod9)
+  MSE.vec10[k]=(data[(n.min+k)]-forcast.mod10)^2
+  MAE.vec10[k]=abs(data[(n.min+k)]-forcast.mod10)
+  MSE.vec11[k]=(data[(n.min+k)]-forcast.mod11)^2
+  MAE.vec11[k]=abs(data[(n.min+k)]-forcast.mod11)
 }
 
 # Summary Results 
 
 Results.mat=rbind(
-  apply(cbind(MSE.vec1,MSE.vec2,MSE.vec3,MSE.vec4,MSE.vec5,MSE.vec6,MSE.vec7,MSE.vec8)[-132,],2,mean),
-  apply(cbind(MAE.vec1,MAE.vec2,MAE.vec3,MAE.vec4,MAE.vec5,MAE.vec6,MAE.vec7,MAE.vec8)[-132,],2,mean)
+  apply(cbind(MSE.vec1,MSE.vec2,MSE.vec3,MSE.vec4,MSE.vec5,MSE.vec6,MSE.vec7,MSE.vec8,MSE.vec9,MSE.vec10,MSE.vec11)[-132,],2,mean),
+  apply(cbind(MAE.vec1,MAE.vec2,MAE.vec3,MAE.vec4,MAE.vec5,MAE.vec6,MAE.vec7,MAE.vec8,MAE.vec9,MAE.vec10,MAE.vec11)[-132,],2,mean)
 )
-dimnames(Results.mat)=list(c("MSE","MAE"),c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","Model 6", "Model 7", 'Model 8'))
+dimnames(Results.mat)=list(c("MSE","MAE"),c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","Model 6", "Model 7", 'Model 8', 'Model 9', 'Model 10', 'Model 11'))
 
 Results.mat
 
 
 #modelos del 1 al 6 buenos 
-#nos quedamos con el 4 por AIC, BIC, AICc
-#nos quedamos con 6 por  MSE y MAE
+#nos quedamos con el 4,9 por AIC, BIC, AICc
+#nos quedamos con 5 por  MSE y MAE
 
 
 #esto nos lo saltamos de momento, vamos a diagnosis de residuos de estos 3
@@ -361,12 +384,12 @@ NonParametric.Tests(mod5$residuals)
 Check.normality(mod5$residuals)
 My.Ljung.Box(mod5$residuals,7)
 
-#MODELO 6
+#MODELO 9
 
-S.ACF(mod6$residuals)
-NonParametric.Tests(mod6$residuals)
-Check.normality(mod6$residuals)
-My.Ljung.Box(mod6$residuals,8)
+S.ACF(mod9$residuals)
+NonParametric.Tests(mod9$residuals)
+Check.normality(mod9$residuals)
+My.Ljung.Box(mod9$residuals,6)
 
 #con el S.ACF obtenemos lo mismo para los 3 
 #con el check normality lo mismo
@@ -377,7 +400,7 @@ My.Ljung.Box(mod6$residuals,8)
 ##fitting and predictions
 
 
-plot(seq(1,232), data,ylab="registrations",xlab="",type="l",main="titutlo",lwd=2)
+plot(seq(1,232), data,ylab="cement (in millions of tons)",xlab="",type="l",main="Total quarterly production of cement in Australia (1st quarter 1958 - 4th quarter 2015), n=232",lwd=2)
 points(seq(1,232),forecast(mod4)$fitted,col="red",type="l",lwd=2)
 
 n.data=length(data)
@@ -390,7 +413,7 @@ points(seq(225,232),forcast.mod4$lower[,2],type="l",col="blue") # lower CI
 points(seq(225,232),forcast.mod4$upper[,2],type="l",col="blue") # up CI 
 #en vez de h=8 meterle 12 
 
-Predic.mod4=forecast(mod4,32)
+Predic.mod4=forecast(mod4,20)
 Predic.mod4
 
-plot(Predic.mod4,200)
+plot(Predic.mod4,50)
