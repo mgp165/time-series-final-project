@@ -3,6 +3,8 @@ title: Total quarterly production of cement in Australia (in millions of tonnes)
   first quarter 1958 - fourth quarter 2015 (n=232).
 ---
 
+### Manuel García Plaza and Carlos Peñas Bernabéu
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -17,6 +19,8 @@ data = data[, 1]
 z = ts(data, start=c(1958,1), frequency=4)
 ```
 
+# Data visualization
+
 ```{r, echo=FALSE}
 plot(data, type='l', axes=FALSE, xlab="", ylab='cement (in millions of tons)', main='Total quarterly production of cement in Australia (1958- 2015)')
 box()
@@ -24,16 +28,16 @@ axis(1, at=c(seq(0,232,by=24),232), labels=c(seq(1958,2015,by=6),2015))
 axis(2, at=seq(0,3,by=0.5),labels=seq(0,3,by=0.5))  
 ```
 
-comentar que vemos trend y seasonal y varianza distinta
+We observe in this first plot a trend component, a possible seasonal component and a growth in the variance.
 
 ```{r}
 ggseasonplot(z, main='Seasonal plot: Total production of cement')
 
 ```
 
-la periodicidad es efectivamente 4
+It is clear that the period is s=4 (also we check here the increasing variance and mean).
 
-# box cox transformation
+# Box-Cox transformation
 
 ```{r, message=FALSE,include=FALSE}
 # x: observed time series
@@ -79,26 +83,29 @@ BoxCox.out=function(x,n.tilde)
 Plot.var(z, n.tilde)
 ```
 
-la relacion es lineal para hacer la transformacion
+There is a linear relationship between the logarithm of the mean and the logarithm of the standard deviation (each dot represents a year). Thus, we can apply the Box-Cox transformation in order to stabilize the variance.
+
 
 ```{r}
 BoxCox(data, n.tilde)
 
 ```
 
-Transformed series obtained using the Box-Cox transformation with lambda=-0.13
-now the variance is constant as we can see
+Transformed series obtained using the Box-Cox transformation with $\lambda = -0.13$.
+
+Now the variance is constant as we can see.
 
 ```{r}
 X.tilde = BoxCox.out(data, n.tilde)
 ```
 
+# Differentiation
+
 ```{r}
 Acf(X.tilde,main="ACF of the transformed series",xlab="Lag",ylab="ACF")
 ```
 
-decreases linearly slowly 
-we apply differencing operator
+Decreases linearly slowly, so we apply the differencing operator.
 
 ```{r}
 Wt.1 = diff(X.tilde, lag=1, differences=1)
@@ -110,7 +117,7 @@ Acf(Wt.1, main="ACF of the first difference of the transformed series",xlab="Lag
 
 ```
 
-as we see acf non zero on seasonal lags, we apply seasonal differencing operator (s=4)
+We see nonzero coefficients on seasonal lags, then we apply seasonal differencing operator (s=4).
 
 ```{r}
 Wt.2 = diff(Wt.1, lag=4, differences = 1)
@@ -123,24 +130,30 @@ plot(Wt.2,type='l', main='Transformed series after one regular difference and on
 ggseasonplot(ts(Wt.2,frequency=4))
 ```
 
-con ggseasonal ver estacionariedad
+Now the series is stationary.
 
 ```{r}
 mean(Wt.2)
 ```
 
-the mean is 0
+With mean equal to 0.
 
 ```{r, echo=FALSE}
 acf.2=Acf(Wt.2, 58, main='ACF of the time series after one regular and one seasonal differences')
 ```
+ 
+We stop differentiating now because the graph and the ACF do not show obvious deviations from stationarity.
+\
+Here, at first lags we can consider only the first coefficient different from zero or a geometrical decrease. On seasonal lags, only 2 different from zero or geometrical decrease. Between seasonal lags, the interaction of both parts, there are not many lags to conclude anything clearbecause the period is very small.
+
 
 ```{r}
 pacf.2=Pacf(Wt.2)
 ```
 
-
-Thus, as a result of the identification step we have identified the following class of models for the  "original'' series $\{{\tilde W}_{t}\}$
+At first lags: the first coefficient different from zero or geometrical / sinusoidal decrease. At seasonal lags, the first four coefficients are different from zero. Both to the right and to the left of each seasonal lag, we can’t conclude anything due to the small quantity of coefficients.
+\
+Thus, as a result of the identification step we have identified the following class of models for the  "original'' series $\{{\tilde X}_{t}\}$
 
 -   $M_{1}$: ARIMA(4,1,0)$_{4}$x(1,1,1)
 -   $M_{2}$: ARIMA(4,1,0)$_{4}$x(2,1,1)
@@ -154,9 +167,7 @@ Thus, as a result of the identification step we have identified the following cl
 -   $M_{10}$: ARIMA(2,1,0)$_{4}$x(0,1,1)
 -   $M_{11}$: ARIMA(4,1,0)$_{4}$x(0,1,1)
 
-### Maximum Likelihood estimation
-
-The maximum likelihood estimation of the parameters of an ARIMA model can be computed using the *Arima* function (*forecast* package)
+### Model Selection
 
 ```{r}
 mod1 = Arima(data,order=c(1,1,1),seasonal=list(order=c(4,1,0),period=4),lambda=-0.13)
@@ -173,9 +184,7 @@ mod11 = Arima(data,order=c(0,1,1),seasonal=list(order=c(4,1,0),period=4),lambda=
 
 ```
 
-### Model Selection
-
-The *Arima* function also provides the value of the AIC and BIC criterion
+#### AIC, AICc and BIC:
 
 ```{r}
 AIC.BIC=rbind(c(mod1$"aic",mod1$"aicc",mod1$"bic"),
@@ -194,7 +203,9 @@ dimnames(AIC.BIC)=list(c("Model 1","Model 2", "Model 3", 'Model 4', "Model 5","M
 AIC.BIC
 ```
 
-As an additional criterion for model selection we consider cross-validation
+Model 4 is the best attending to AIC and AICc. Model 9 is the best by BIC.
+\
+#### Cross-validation:
 
 ```{r}
 n.min = 100  # minimal sample size  required to estimate a model
@@ -286,10 +297,10 @@ dimnames(Results.mat)=list(c("MSE","MAE"),c("Model 1","Model 2", "Model 3", 'Mod
 Results.mat
 ```
 
-nos quedamos con el 4,9 por AIC, BIC, AICc
-nos quedamos con 5 por  MSE y MAE
+Model 5 is the best in MSE and MAE.
+\
+#### Diagnosis of residuals:
 
-### diagnosis of residuals
 ```{r, message=FALSE}
 require(astsa)
 source('Diagnostic.R')
@@ -297,7 +308,7 @@ require(portes)
 require(nortest)
 ```
 
-#### Model 4
+#### Model 4.
 
 Test the null hypothesis that the residuals are realizations of an IID noise process.
 
@@ -320,7 +331,7 @@ Test the null hypothesis that the residuals follow a Normal distribution
 Check.normality(mod4$residuals)
 ```
 
-#### Model 5
+#### Model 5.
 
 ```{r}
 
@@ -330,7 +341,7 @@ Check.normality(mod5$residuals)
 My.Ljung.Box(mod5$residuals,7)
 ```
 
-#### Model 9
+#### Model 9.
 
 ```{r}
 
@@ -340,10 +351,7 @@ Check.normality(mod9$residuals)
 My.Ljung.Box(mod9$residuals,6)
 ```
 
-con el S.ACF obtenemos lo mismo para los 3 
-con el check normality lo mismo
-con el nonparametric lo mismo
-con el ljung box nos quedamos con el 4 
+We only can conclude with the Ljung-Box test (the rest do not make differences). We choose Model 4 as the best model overall.
 
 ### Model fit and prediction
 
@@ -368,6 +376,8 @@ points(seq(225,232),forcast.mod4$mean,type="l",col="red") # predictions
 points(seq(225,232),forcast.mod4$lower[,2],type="l",col="blue") # lower CI
 points(seq(225,232),forcast.mod4$upper[,2],type="l",col="blue") # up CI 
 ```
+
+### Predictions
 
 ```{r}
 Predic.mod4=forecast(mod4,20)
